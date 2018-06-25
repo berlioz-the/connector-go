@@ -1,14 +1,15 @@
 package berlioz
 
 import (
-	"encoding/json"
+	"os"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"net/http"
+	"encoding/json"
 
-	"github.com/gorilla/websocket"
+	// "github.com/gorilla/websocket"
+	
 )
 
 // Peers is TBD.
@@ -16,37 +17,6 @@ type Peers interface {
 	Do(*http.Request) (*http.Response, error)
 	// Get(string) (*http.Response, error)
 	GetRandomEndpoint() (Endpoint, error)
-}
-
-// Endpoint is TBD.
-type Endpoint struct {
-	Name            string `json:"name,omitempty"`
-	Protocol        string `json:"protocol,omitempty"`
-	NetworkProtocol string `json:"networkProtocol,omitempty"`
-	Port            uint16 `json:"port,omitempty"`
-	Address         string `json:"address,omitempty"`
-}
-
-type policy struct {
-	Values   map[string]interface{} `json:"values,omitempty"`
-	Children map[string]policy      `json:"children,omitempty"`
-}
-
-type cloudCredentials struct {
-	AccessKeyID     string `json:"accessKeyId,omitempty"`
-	SecretAccessKey string `json:"secretAccessKey,omitempty"`
-}
-
-type cloudConfig struct {
-	Region      string           `json:"region,omitempty"`
-	Credentials cloudCredentials `json:"credentials,omitempty"`
-}
-
-type cloudResource struct {
-	Name     string      `json:"name,omitempty"`
-	Class    string      `json:"class,omitempty"`
-	SubClass string      `json:"subClass,omitempty"`
-	Config   cloudConfig `json:"config,omitempty"`
 }
 
 type peers map[string]Endpoint
@@ -124,39 +94,23 @@ var registry agentResponse
 
 func init() {
 	wsURL := os.Getenv("BERLIOZ_AGENT_PATH")
-	log.Println("WS URL: %s\n", wsURL)
+	initClient(wsURL, handleMessage)
+}
 
-	dialer := websocket.DefaultDialer
-	ws, _, err := dialer.Dial(wsURL, nil)
+func handleMessage(message []byte) {
+
+	var resp agentResponse
+	err := json.Unmarshal(message, &resp)
 	if err != nil {
-		log.Fatalf("Unable to connect to agent: %s", err)
+		log.Printf("[handleMessage] Encountered error while parsing response: %s", err)
+		return
 	}
 
-	// var wg sync.WaitGroup
-	// wg.Add(1)
-	go func() {
-		// defer wg.Done()
-		for {
-			_, message, err := ws.ReadMessage()
-			if err != nil {
-				log.Println("read:", err)
-				return
-			}
-
-			var resp agentResponse
-			err = json.Unmarshal(message, &resp)
-			if err != nil {
-				log.Fatalf("Encountered error while parsing response: %s", err)
-			}
-
-			registry = resp
-
-			b, err := json.MarshalIndent(resp, "", "  ")
-			if err != nil {
-				log.Fatalf("Encountered error while encoding response back: %s", err)
-			}
-			fmt.Printf("Updated registry: %s\n", string(b))
-		}
-	}()
-	// wg.Wait()
+	registry = resp
+	
+	b, err := json.MarshalIndent(resp, "", "  ")
+	if err != nil {
+		log.Fatalf("[handleMessage] Encountered error while encoding response back: %s", err)
+	}
+	fmt.Printf("[handleMessage] Updated registry: %s\n", string(b))
 }

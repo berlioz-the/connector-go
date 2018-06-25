@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	fmt.Println(berlioz.Request("service", "app", "client").GetRandomEndpoint())
 
