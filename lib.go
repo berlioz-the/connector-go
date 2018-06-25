@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -65,8 +67,8 @@ func (p peers) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	req.URL.Scheme = ep.Protocol
-	// req.URL.Host = ep.Address + ":" + strconv.Itoa(int(ep.Port))
-	req.URL.Host = "localhost:40002"
+	req.URL.Host = ep.Address + ":" + strconv.Itoa(int(ep.Port))
+	// req.URL.Host = "localhost:40002"
 
 	// TODO: Manipulate headers.
 
@@ -121,7 +123,9 @@ func Request(kind string, name string, ep string) Peers {
 var registry agentResponse
 
 func init() {
-	wsURL := "ws://localhost:40000/ec13a429-f3fa-4698-8a7c-3410104003da"
+	wsURL := os.Getenv("BERLIOZ_AGENT_PATH")
+	log.Println("WS URL: %s\n", wsURL)
+
 	dialer := websocket.DefaultDialer
 	ws, _, err := dialer.Dial(wsURL, nil)
 	if err != nil {

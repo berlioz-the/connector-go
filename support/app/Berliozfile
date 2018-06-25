@@ -1,0 +1,13 @@
+---
+kind: service
+cluster: berliozgo
+name: app
+
+provides:
+    client:
+        port: 4000
+        protocol: http
+
+resources:
+    memory:
+        min: 128

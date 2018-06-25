@@ -1,0 +1,12 @@
+---
+kind: service
+cluster: berliozgo
+name: example
+
+consumes:
+    - service: app
+      endpoint: client
+
+resources:
+    memory:
+        min: 128
