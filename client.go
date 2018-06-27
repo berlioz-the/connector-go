@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type messageHandler func([]byte)
+type messageHandler func([]byte) error
 
 func initClient(wsURL string, handler messageHandler) {
 	log.Printf("[initClient] WS URL: %s\n", wsURL)
@@ -26,7 +26,7 @@ func initClient(wsURL string, handler messageHandler) {
 	log.Printf("[initClient] END \n")
 }
 
-func _clientTryProcess(wsURL string, handler messageHandler) (error) {
+func _clientTryProcess(wsURL string, handler messageHandler) error {
 
 	log.Printf("[_clientTryProcess] Start \n")
 
@@ -43,7 +43,13 @@ func _clientTryProcess(wsURL string, handler messageHandler) (error) {
 			return err
 		}
 
-		handler(message)
+		log.Printf("[_clientTryProcess] Message: %s \n", string(message[:]))
+
+		err = handler(message)
+		if err != nil {
+			log.Printf("[_clientTryProcess] Error processing message. Error: %s. Message: %s \n", err, string(message[:]))
+			return err
+		}
 	}
 
 	log.Printf("[_clientTryProcess] End \n")
