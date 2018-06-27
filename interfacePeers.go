@@ -26,11 +26,7 @@ func Peers(kind string, name string, endpoint string) PeerAccessor {
 }
 
 func (x PeerAccessor) getMap() indexedMap {
-	value := registry.get(x.kind, x.path)
-	if value == nil {
-		return indexedMap{}
-	}
-	return value.(indexedMap)
+	return registry.getAsIndexedMap(x.kind, x.path)
 }
 
 // TBD
@@ -62,11 +58,7 @@ type PeerRequester struct {
 }
 
 func (x PeerRequester) getMap() indexedMap {
-	value := registry.get(x.kind, x.path)
-	if value == nil {
-		return indexedMap{}
-	}
-	return value.(indexedMap)
+	return registry.getAsIndexedMap(x.kind, x.path)
 }
 
 // TBD
@@ -123,25 +115,34 @@ func (x PeerRequester) Head(url string) (*http.Response, []byte, error) {
 
 // TBD
 func (x PeerRequester) Do(req *http.Request) (*http.Response, []byte, error) {
-	y := x.getMap()
-	ep := y.random().(EndpointModel)
+	f := func(peer interface{}) ([]interface{}, error) {
+		ep := peer.(EndpointModel)
 
-	req.URL.Scheme = ep.Protocol
-	req.URL.Host = ep.Address + ":" + strconv.Itoa(int(ep.Port))
+		req.URL.Scheme = ep.Protocol
+		req.URL.Host = ep.Address + ":" + strconv.Itoa(int(ep.Port))
 
-	// TODO: Manipulate headers.
+		// TODO: Manipulate headers.
 
-	log.Printf("Request: %s", req.URL.String())
-	resp, err := new(http.Client).Do(req)
-	if err != nil {
-		// fmt.Printf("Response: %s, error: %s\n", resp, err)
-		return nil, nil, err
+		log.Printf("Request: %s", req.URL.String())
+		resp, err := new(http.Client).Do(req)
+		if err != nil {
+			// fmt.Printf("Response: %s, error: %s\n", resp, err)
+			return nil, err
+		}
+
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			// fmt.Printf("Response: %s, error: %s\n", resp, err)
+			return nil, err
+		}
+
+		return []interface{}{resp, body}, nil
 	}
 
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-
-	// TODO: Handle retry.
-
-	return resp, body, err
+	res, err := execute(x.kind, x.path, f)
+	if err != nil {
+		return nil, nil, err
+	}
+	return res[0].(*http.Response), res[1].([]byte), nil
 }

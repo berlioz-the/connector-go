@@ -26,7 +26,7 @@ func processMessage(data []byte) error {
 					path = make([]string, 2)
 					path[0] = name
 					path[1] = endpoint
-					registry.set("service", path, newIndexedMap(value))
+					registry.setAsIndexedMap("service", path, value)
 				}
 			}
 		}

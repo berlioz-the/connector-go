@@ -60,6 +60,18 @@ func (x registryT) get(name string, path []string) interface{} {
 	return nil
 }
 
+func (x registryT) getAsIndexedMap(name string, path []string) indexedMap {
+	value := x.get(name, path)
+	if value == nil {
+		return indexedMap{}
+	}
+	return value.(indexedMap)
+}
+
+func (x registryT) setAsIndexedMap(name string, path []string, value interface{}) {
+	x.set(name, path, newIndexedMap(value))
+}
+
 func (x registryT) _getSection(name string) (sectionT, error) {
 	if val, ok := x.sections[name]; ok {
 		return val, nil
