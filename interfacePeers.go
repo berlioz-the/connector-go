@@ -30,6 +30,13 @@ func (x PeerAccessor) getMap() indexedMap {
 }
 
 // TBD
+func (x PeerAccessor) Monitor(callback func(PeerAccessor)) {
+	registry.subscribe(x.kind, x.path, func(interface{}) {
+		callback(x)
+	})
+}
+
+// TBD
 func (x PeerAccessor) All() PeersModel {
 	y := x.getMap()
 	result := PeersModel{}
@@ -40,15 +47,23 @@ func (x PeerAccessor) All() PeersModel {
 }
 
 // TBD
-func (x PeerAccessor) Get(identity string) EndpointModel {
+func (x PeerAccessor) Get(identity string) (EndpointModel, bool) {
 	y := x.getMap()
-	return y.get(identity).(EndpointModel)
+	val := y.get(identity)
+	if val == nil {
+		return EndpointModel{}, false
+	}
+	return val.(EndpointModel), true
 }
 
 // TBD
-func (x PeerAccessor) Random() EndpointModel {
+func (x PeerAccessor) Random() (EndpointModel, bool) {
 	y := x.getMap()
-	return y.random().(EndpointModel)
+	val := y.random()
+	if val == nil {
+		return EndpointModel{}, false
+	}
+	return val.(EndpointModel), true
 }
 
 // TBD

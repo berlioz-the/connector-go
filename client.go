@@ -22,13 +22,11 @@ func initClient(wsURL string, handler messageHandler) {
 			time.Sleep(2 * time.Second)
 		}
 	}()
-
-	log.Printf("[initClient] END \n")
 }
 
 func _clientTryProcess(wsURL string, handler messageHandler) error {
 
-	log.Printf("[_clientTryProcess] Start \n")
+	// log.Printf("[_clientTryProcess] Start \n")
 
 	dialer := websocket.DefaultDialer
 	ws, _, err := dialer.Dial(wsURL, nil)
@@ -37,7 +35,7 @@ func _clientTryProcess(wsURL string, handler messageHandler) error {
 	}
 
 	for {
-		log.Printf("[_clientTryProcess] loop... \n")
+		// log.Printf("[_clientTryProcess] loop... \n")
 		_, message, err := ws.ReadMessage()
 		if err != nil {
 			return err
