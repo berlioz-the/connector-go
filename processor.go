@@ -22,14 +22,17 @@ func processMessage(data []byte) error {
 		if message.Peers.Service != nil {
 			for name, endpointMap := range message.Peers.Service {
 				for endpoint, value := range endpointMap {
-					var path []string
-					path = make([]string, 2)
+					path := make([]string, 2)
 					path[0] = name
 					path[1] = endpoint
 					registry.setAsIndexedMap("service", path, value)
 				}
 			}
 		}
+	}
+
+	if message.Policies != nil {
+		registry.set("policies", nil, message.Policies)
 	}
 
 	registry.debugOutput()

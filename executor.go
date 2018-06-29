@@ -3,6 +3,7 @@ package berlioz
 import (
 	"fmt"
 	"log"
+	"math"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type execContext struct {
 type execActionF func(interface{}) ([]interface{}, error)
 
 func execute(kind string, path []string, action execActionF) ([]interface{}, error) {
+
 	context := new(execContext)
 	for {
 		res, err := _tryExecute(kind, path, action)
@@ -22,6 +24,7 @@ func execute(kind string, path []string, action execActionF) ([]interface{}, err
 		}
 
 		context.tryCount++
+		log.Printf("There was error: %s\n", err)
 		canRetry := _prepareRetry(context)
 		if !canRetry {
 			return nil, err
@@ -31,6 +34,8 @@ func execute(kind string, path []string, action execActionF) ([]interface{}, err
 
 func _tryExecute(kind string, path []string, action execActionF) ([]interface{}, error) {
 	log.Println("Trying...")
+	log.Printf("EnableZipkin = %s\n", resolvePolicy("enable-zipkin", nil))
+	log.Printf("ZipkinURL = %s\n", resolvePolicy("zipkin-endpoint", nil))
 
 	peersMap := registry.getAsIndexedMap(kind, path)
 	peer := peersMap.random()
@@ -43,11 +48,18 @@ func _tryExecute(kind string, path []string, action execActionF) ([]interface{},
 }
 
 func _prepareRetry(context *execContext) bool {
-	if context.tryCount > 3 {
+	if context.tryCount > resolvePolicyInt("retry-count", nil) {
 		return false
 	}
-
-	log.Println("Sleeping before retry...")
-	time.Sleep(2 * time.Second)
+	timeout := resolvePolicyInt("retry-initial-delay", nil)
+	timeout = timeout * int(math.Pow(resolvePolicyFloat("retry-delay-multiplier", nil), float64(context.tryCount-1)))
+	maxDelay := resolvePolicyInt("retry-max-delay", nil)
+	if timeout > maxDelay {
+		timeout = maxDelay
+	}
+	if timeout > 0 {
+		log.Printf("Sleeping %dms before retry...\n", timeout)
+		time.Sleep(time.Duration(timeout) * time.Millisecond)
+	}
 	return true
 }

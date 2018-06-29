@@ -111,5 +111,8 @@ func (x registryT) debugOutput() {
 }
 
 func _makeFullName(arr []string) string {
+	if arr == nil {
+		return ""
+	}
 	return strings.Join(arr, "-")
 }
