@@ -29,6 +29,20 @@ func processMessage(data []byte) error {
 				}
 			}
 		}
+		if message.Peers.Database != nil {
+			for name, value := range message.Peers.Database {
+				path := make([]string, 1)
+				path[0] = name
+				registry.setAsIndexedMap("database", path, value)
+			}
+		}
+		if message.Peers.Queue != nil {
+			for name, value := range message.Peers.Queue {
+				path := make([]string, 1)
+				path[0] = name
+				registry.setAsIndexedMap("queue", path, value)
+			}
+		}
 	}
 
 	if message.Policies != nil {

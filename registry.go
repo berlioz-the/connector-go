@@ -49,6 +49,7 @@ func newRegistry() *registryT {
 
 func (x registryT) set(name string, path []string, value interface{}) {
 	log.Printf("[REGISTRY] SET. Section: %s, Path: %v \n", name, path)
+	// log.Printf("[REGISTRY] SET. Section: %s, Path: %v, Value: %v \n", name, path, value)
 
 	if section, err := x._getSection(name); err == nil {
 		fullname := _makeFullName(path)

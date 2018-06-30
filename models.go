@@ -26,18 +26,20 @@ type cloudConfigModel struct {
 	Credentials cloudCredentialsModel `json:"credentials,omitempty"`
 }
 
-type cloudResourceModel struct {
+type CloudResourceModel struct {
 	Name     string           `json:"name,omitempty"`
 	Class    string           `json:"class,omitempty"`
 	SubClass string           `json:"subClass,omitempty"`
 	Config   cloudConfigModel `json:"config,omitempty"`
 }
 
+type CloudResourcesModel map[string]CloudResourceModel
+
 type messagePeersModel struct {
-	Service  map[string]map[string]PeersModel         `json:"service,omitempty"`
-	Cluster  map[string]map[string]PeersModel         `json:"cluster,omitempty"`
-	Database map[string]map[string]cloudResourceModel `json:"database,omitempty"`
-	Queue    map[string]map[string]cloudResourceModel `json:"queue,omitempty"`
+	Service  map[string]map[string]PeersModel `json:"service,omitempty"`
+	Cluster  map[string]map[string]PeersModel `json:"cluster,omitempty"`
+	Database map[string]CloudResourcesModel   `json:"database,omitempty"`
+	Queue    map[string]CloudResourcesModel   `json:"queue,omitempty"`
 }
 
 type agentMessageModel struct {

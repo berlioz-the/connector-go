@@ -18,8 +18,7 @@ type PeerAccessor struct {
 
 // TBD
 func Peers(kind string, name string, endpoint string) PeerAccessor {
-	var path []string
-	path = make([]string, 2)
+	path := make([]string, 2)
 	path[0] = name
 	path[1] = endpoint
 	return PeerAccessor{kind: kind, path: path}

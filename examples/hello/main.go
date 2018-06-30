@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+    "time"
 
     "app"
 )
@@ -19,6 +20,19 @@ func main() {
         }
     })
 
+    berlioz.Database("contacts").Monitor(func(databases berlioz.NativeResourceAccessor) {
+        log.Printf("---------- DATABASE MONITOR -----------------")
+        // log.Printf("--- DATABASES: %v\n", databases.All())
+        // if val, ok := peers.Get("1"); ok {
+        //     log.Printf("--- INDEXED PEER: %v\n", val)
+        // }
+        if val, ok := databases.Random(); ok {
+            log.Printf("--- RANDOM DATABASE: %v\n", val)
+        }
+
+        databases.Test()
+    })
+
 	resp, body, err := berlioz.Request("service", "app", "client").Get("/")
 	if err != nil {
 		log.Printf("Response Error: %s\n", err)
@@ -26,4 +40,6 @@ func main() {
 		log.Printf("Response Status Code: %s\n", resp.Status)
 		log.Printf("Response Body: %s\n", body)
 	}
+
+    time.Sleep(5 * time.Second)
 }
