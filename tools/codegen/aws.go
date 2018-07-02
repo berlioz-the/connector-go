@@ -1,70 +1,53 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"os"
 	"reflect"
 	"strconv"
 
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	. "github.com/dave/jennifer/jen"
 )
 
-func main() {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("CWD: %s\n", dir)
-
-	f := generate()
-	// fmt.Printf("%#v\n", f)
-
-	err = f.Save("genAws.go")
-	if err != nil {
-		log.Fatal(err)
-	}
+var awsMethodCheckCustomHandlers = map[string]func(reflect.Method) bool{
+	"*dynamodb.DynamoDB": checkDynamoDbMethod,
 }
 
-func generate() *File {
+var awsPackageNames = map[string]string{
+	"dynamodb": "github.com/aws/aws-sdk-go/service/dynamodb",
+}
+
+var awsPeerHandler = map[string]func(*File, reflect.Method, string) Code{
+	"*dynamodb.DynamoDB": setupDynamoDbPeer,
+}
+
+func generateAws() {
 	f := NewFile("berlioz")
-	f.Id("import \"github.com/aws/aws-sdk-go/service/dynamodb\"")
-	// f.ImportName("github.com/aws/aws-sdk-go/service/dynamodb", "zz")
-	// f.Func().Id("main").Params().Block(
-	// f.Qual("github.com/aws/aws-sdk-go/service/dynamodb", "kuku"),
-	// )
 
 	f.Comment("THIS FILE IS GENERATED USING ROBOT")
 	f.Comment("DO NOT MODIFY THIS FILE DIRECTLY")
 	genDynamoDB(f)
 
-	return f
-}
-
-func genDynamoDB(f *File) {
-
-	// (*dynamodb.DynamoDB)(nil).CreateBackup
-	rdynamo := reflect.TypeOf((*dynamodb.DynamoDB)(nil))
-	for i := 0; i < rdynamo.NumMethod(); i++ {
-		rm := rdynamo.Method(i)
-		genDynamoDBMethod(f, rm)
+	err := f.Save("genAws.go")
+	if err != nil {
+		log.Fatal(err)
 	}
-	// x := {}
-
-	// f.Func().Id("main").Params().Block(
-	// 	Qual("fmt", "Println").Call(Lit("Hello, world")),
-	// )
 }
 
-func genDynamoDBMethod(f *File, rm reflect.Method) {
-	if !shouldWrapDynamoDBMethod(rm) {
+func wrapAwsClient(f *File, t reflect.Type) {
+	for i := 0; i < t.NumMethod(); i++ {
+		rm := t.Method(i)
+		wrapAwsMethod(f, t, rm)
+	}
+}
+
+func wrapAwsMethod(f *File, t reflect.Type, rm reflect.Method) {
+	if !shouldWrapAwsMethod(t, rm) {
 		return
 	}
 
 	rmt := rm.Type
 	f.Line()
-	f.Commentf("Wrapper for DynamoDB %s.", rm.Name)
+	f.Commentf("Wrapper for %s::%s.", t.String(), rm.Name)
 
 	inputArgs := make([]Code, 0)
 	innerArgs := make([]Code, 0)
@@ -77,11 +60,20 @@ func genDynamoDBMethod(f *File, rm reflect.Method) {
 
 	contents := make([]Code, 0)
 
+	resultVariableName := "_"
+	var inputStructVariable string
+
 	for i := 1; i < rmt.NumIn(); i++ {
 		in := rmt.In(i)
 		f.Commentf("  In: %v, Type: %v", in.Name(), in.String())
 		argName := "in" + strconv.Itoa(i)
-		inputArgs = append(inputArgs, Id(argName).Id(in.String()))
+		if len(inputStructVariable) == 0 {
+			inputStructVariable = argName
+		}
+
+		inputArgType := resolveGeneratorType(in)
+		inputArgs = append(inputArgs, Id(argName).Add(inputArgType))
+
 		innerArgs = append(innerArgs, Id(argName))
 	}
 	for i := 0; i < rmt.NumOut(); i++ {
@@ -99,18 +91,25 @@ func genDynamoDBMethod(f *File, rm reflect.Method) {
 			apiFuncVar = "res[" + strconv.Itoa(len(apiFuncReturnArray)) + "]"
 			apiFuncReturnArray = append(apiFuncReturnArray, Id(apiFuncVar))
 
-			outerFuncVar = "execRes[" + strconv.Itoa(len(outputReturnSuccess)) + "]"
+			resultVariableName = "execRes"
+			outerFuncVar = "execRes[" + strconv.Itoa(len(outputReturnSuccess)) + "].(" + out.String() + ")"
 			outputReturnSuccess = append(outputReturnSuccess, Id(outerFuncVar))
 			outputReturnError = append(outputReturnError, Nil())
 		}
 		apiFuncResults = append(apiFuncResults, Id(apiFuncVar))
 	}
 
-	actualCall := Id("action").Op(":=").Func().Params(Id("peer").Id("interface{}")).Params(Id("[]interface{}"), Error()).Block(
-		List(Id("client"), Id("err").Op(":=").Id("x.Client").Call(Id("peer"))),
+	var peerCustomCode Code
+	if peerHandler, ok := awsPeerHandler[t.String()]; ok {
+		peerCustomCode = peerHandler(f, rm, inputStructVariable)
+	}
+
+	actualCall := Id("action").Op(":=").Func().Params(Id("rawPeer").Id("interface{}")).Params(Id("[]interface{}"), Error()).Block(
+		List(Id("client"), Id("peer"), Id("err").Op(":=").Id("x.Client").Call(Id("rawPeer"))),
 		If(Id("err").Op("!=").Nil()).Block(
 			Return(List(Nil(), Err())),
 		),
+		peerCustomCode,
 		Id("res").Op(":=").Make(Id("[]interface{}"), Id(strconv.Itoa(len(apiFuncReturnArray)))),
 		List(apiFuncResults...).Op("=").Id("client."+rm.Name).Call(innerArgs...),
 		Return(Id("res"), Err()),
@@ -118,7 +117,7 @@ func genDynamoDBMethod(f *File, rm reflect.Method) {
 
 	contents = append(contents, actualCall)
 
-	contents = append(contents, List(Id("execRes"), Id("execErr")).Op(":=").Id("execute").Call(
+	contents = append(contents, List(Id(resultVariableName), Id("execErr")).Op(":=").Id("execute").Call(
 		Id("x.info.kind"),
 		Id("x.info.path"),
 		Id("action"),
@@ -135,7 +134,7 @@ func genDynamoDBMethod(f *File, rm reflect.Method) {
 	).Id(rm.Name).Params(inputArgs...).Params(outputTypes...).Block(contents...)
 }
 
-func shouldWrapDynamoDBMethod(rm reflect.Method) bool {
+func shouldWrapAwsMethod(t reflect.Type, rm reflect.Method) bool {
 	rmt := rm.Type
 
 	if rm.Name == "AddDebugHandlers" {
@@ -149,11 +148,7 @@ func shouldWrapDynamoDBMethod(rm reflect.Method) bool {
 		in := rmt.In(1)
 		if in.Kind() == reflect.Ptr {
 			inElem := in.Elem()
-			if inElem.Kind() == reflect.Struct {
-				if _, ok := inElem.FieldByName("TableName"); !ok {
-					return false
-				}
-			} else {
+			if inElem.Kind() != reflect.Struct {
 				return false
 			}
 		} else {
@@ -178,5 +173,12 @@ func shouldWrapDynamoDBMethod(rm reflect.Method) bool {
 			return false
 		}
 	}
+
+	if customChecker, ok := awsMethodCheckCustomHandlers[t.String()]; ok {
+		if !customChecker(rm) {
+			return false
+		}
+	}
+
 	return true
 }
