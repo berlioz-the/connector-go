@@ -89,6 +89,39 @@ func (x NativeResourceAccessor) Test() {
 	}
 }
 
+// TBD
+type DynamoDBAccessor struct {
+	info NativeResourceAccessor
+}
+
+// TBD
+func (x NativeResourceAccessor) DynamoDB() DynamoDBAccessor {
+	return DynamoDBAccessor{info: x}
+}
+
+// TBD
+func (x DynamoDBAccessor) Client(peer interface{}) (*dynamodb.DynamoDB, error) {
+	sess, err := x.info.getSession()
+	if err != nil {
+		log.Printf("[TEST] Could not create session. Reason: %v\n", err)
+		return nil, err
+	}
+	svc := dynamodb.New(sess)
+	return svc, nil
+}
+
+func kuku() {
+	params := &dynamodb.ScanInput{
+		TableName: aws.String("localHomePC-berliozgo-contacts"),
+	}
+	result, err := Database("").DynamoDB().Scan(params)
+	if err != nil {
+		log.Printf("[TEST] Scan Error: %v\n", err)
+	} else {
+		log.Printf("[TEST] Scan Result: %v\n", result)
+	}
+}
+
 func (x NativeResourceAccessor) getSession() (*session.Session, error) {
 	peer, ok := x.Random()
 	if !ok {
