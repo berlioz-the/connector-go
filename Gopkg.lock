@@ -34,8 +34,8 @@
     "service/dynamodb",
     "service/sts"
   ]
-  revision = "5e98666858b97db54a61044bb1150d3b81436860"
-  version = "v1.14.16"
+  revision = "8f7d1442888a1f96115869cec4af9855018ece98"
+  version = "v1.14.18"
 
 [[projects]]
   name = "github.com/dave/jennifer"
