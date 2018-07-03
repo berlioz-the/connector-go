@@ -4,7 +4,8 @@ import (
 	"log"
 	"time"
 
-	berlioz "app"
+	// berlioz "connector-go.git"
+	"app"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )

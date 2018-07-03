@@ -24,6 +24,11 @@
 #   go-tests = true
 #   unused-packages = true
 
+#  Thrift changes not yet released to 0.12.0, thus using top of the tree
+[[override]]
+  name = "github.com/apache/thrift"
+  branch = "master"
+
 
 [prune]
   go-tests = true
