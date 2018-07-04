@@ -3,6 +3,7 @@ package berlioz
 import (
 	"context"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -10,18 +11,23 @@ import (
 	"os"
 
 	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	zipkin "github.com/openzipkin/zipkin-go-opentracing"
+	"github.com/openzipkin/zipkin-go-opentracing/thrift/gen-go/zipkincore"
 	// _ "github.com/apache/thrift"
 )
 
 type zipkinInfo struct {
+	localServiceName string
+
 	enabled bool
 	url     string
 
 	collector *zipkin.Collector
-	tracer    *opentracing.Tracer
+	tracers   map[string]*opentracing.Tracer
 }
 
+// TBD
 type TracingSpan struct {
 	span *opentracing.Span
 }
@@ -33,7 +39,9 @@ func initZipkin() {
 }
 
 func newZipkin() *zipkinInfo {
-	x := zipkinInfo{}
+	x := zipkinInfo{
+		localServiceName: os.Getenv("BERLIOZ_CLUSTER") + "-" + os.Getenv("BERLIOZ_SERVICE"),
+	}
 	monitorPolicyBool("enable-zipkin", nil, func(value bool) {
 		x.enabled = value
 		log.Printf("[ZipkinInfo::monitor] Enabled=%s\n", x.enabled)
@@ -64,7 +72,7 @@ func (x *zipkinInfo) cleanup() {
 		x.collector = nil
 		(*collector).Close()
 	}
-	x.tracer = nil
+	x.tracers = make(map[string]*opentracing.Tracer)
 }
 
 func (x *zipkinInfo) setup() {
@@ -80,31 +88,38 @@ func (x *zipkinInfo) setup() {
 	}
 	log.Printf("[TestZipkin] collector created \n")
 	x.collector = &collector
+}
 
-	// create recorder.
-	hostPort := os.Getenv("BERLIOZ_ADDRESS")
-	serviceName := os.Getenv("BERLIOZ_CLUSTER") + "-" + os.Getenv("BERLIOZ_SERVICE")
-	recorder := zipkin.NewRecorder(collector, true, hostPort, serviceName)
-	log.Printf("[TestZipkin] recorder created \n")
+func (x *zipkinInfo) getTracer(name string) *opentracing.Tracer {
+	if tracer, ok := x.tracers[name]; ok {
+		return tracer
+	}
+	collector := x.collector
+	if collector == nil {
+		return nil
+	}
 
-	// create tracer.
+	recorder := zipkin.NewRecorder(*collector, true, "", name)
+
 	tracer, err := zipkin.NewTracer(
 		recorder,
 		zipkin.ClientServerSameSpan(true),
 		zipkin.TraceID128Bit(true),
-		zipkin.WithLogger(logger),
+		// zipkin.WithLogger(logger),
 	)
 	if err != nil {
 		fmt.Printf("unable to create Zipkin tracer: %+v\n", err)
-		return
+		return nil
 	}
-	x.tracer = &tracer
+
+	x.tracers[name] = &tracer
+	return &tracer
 }
 
-func (x *zipkinInfo) instrument() TracingSpan {
+func (x *zipkinInfo) instrument(name string) TracingSpan {
 	log.Printf("[ZipkinInfo::instrument] \n")
 
-	tracer := x.tracer
+	tracer := x.getTracer(name)
 	if tracer == nil {
 		return TracingSpan{}
 	}
@@ -123,12 +138,38 @@ func (x TracingSpan) Finish() {
 	(*x.span).Finish()
 }
 
+func (x *zipkinInfo) instrumentServerRequest(req *http.Request) (*http.Request, TracingSpan) {
+	log.Printf("[ZipkinInfo::instrumentServerRequest] \n")
+
+	tracer := x.getTracer(x.localServiceName)
+	if tracer == nil {
+		return req, TracingSpan{}
+	}
+	wireContext, err := (*tracer).Extract(
+		opentracing.TextMap,
+		opentracing.HTTPHeadersCarrier(req.Header),
+	)
+	var span opentracing.Span
+	if err == nil {
+		span = (*tracer).StartSpan(req.Method, ext.RPCServerOption(wireContext))
+	} else {
+		span = (*tracer).StartSpan(req.Method)
+	}
+
+	span.SetTag(zipkincore.HTTP_METHOD, req.Method)
+	span.SetTag(zipkincore.HTTP_URL, req.URL.Path)
+
+	ctx := opentracing.ContextWithSpan(req.Context(), span)
+
+	return req.WithContext(ctx), TracingSpan{span: &span}
+}
+
 // TBD
 func TestZipkin() {
 
 	time.Sleep(500 * time.Millisecond)
 
-	span := myZipkin.instrument()
+	span := myZipkin.instrument("kukuku")
 
 	time.Sleep(200 * time.Millisecond)
 
