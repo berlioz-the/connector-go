@@ -47,19 +47,19 @@ func monitorPolicy(name string, target []string, callback func(interface{})) {
 	callback(currVal)
 }
 
-func monitorBool(name string, target []string, callback func(bool)) {
+func monitorPolicyBool(name string, target []string, callback func(bool)) {
 	monitorPolicy(name, target, func(val interface{}) {
 		callback(toBool(val))
 	})
 }
 
-func monitorString(name string, target []string, callback func(string)) {
+func monitorPolicyString(name string, target []string, callback func(string)) {
 	monitorPolicy(name, target, func(val interface{}) {
 		callback(toString(val))
 	})
 }
 
-func monitorInt(name string, target []string, callback func(int)) {
+func monitorPolicyInt(name string, target []string, callback func(int)) {
 	monitorPolicy(name, target, func(val interface{}) {
 		callback(toInt(val))
 	})
