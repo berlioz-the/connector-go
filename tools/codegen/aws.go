@@ -63,6 +63,8 @@ func wrapAwsMethod(f *File, t reflect.Type, rm reflect.Method) {
 	resultVariableName := "_"
 	var inputStructVariable string
 
+	inputArgs = append(inputArgs, Id("ctx").Qual("context", "Context"))
+
 	for i := 1; i < rmt.NumIn(); i++ {
 		in := rmt.In(i)
 		f.Commentf("  In: %v, Type: %v", in.Name(), in.String())
@@ -104,7 +106,7 @@ func wrapAwsMethod(f *File, t reflect.Type, rm reflect.Method) {
 		peerCustomCode = peerHandler(f, rm, inputStructVariable)
 	}
 
-	actualCall := Id("action").Op(":=").Func().Params(Id("rawPeer").Id("interface{}")).Params(Id("[]interface{}"), Error()).Block(
+	actualCall := Id("action").Op(":=").Func().Params(Id("rawPeer").Id("interface{}"), Id("span").Id("*TracingSpan")).Params(Id("[]interface{}"), Error()).Block(
 		List(Id("client"), Id("peer"), Id("err").Op(":=").Id("x.Client").Call(Id("rawPeer"))),
 		If(Id("err").Op("!=").Nil()).Block(
 			Return(List(Nil(), Err())),
@@ -118,6 +120,7 @@ func wrapAwsMethod(f *File, t reflect.Type, rm reflect.Method) {
 	contents = append(contents, actualCall)
 
 	contents = append(contents, List(Id(resultVariableName), Id("execErr")).Op(":=").Id("execute").Call(
+		Id("ctx"),
 		Id("x.info.kind"),
 		Id("x.info.path"),
 		Id("action"),

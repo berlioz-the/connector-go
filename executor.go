@@ -1,38 +1,41 @@
 package berlioz
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math"
+	"os"
+	"strings"
 	"time"
 )
 
 // TBD
-type execContext struct {
+type execInfo struct {
 	tryCount int
 }
 
-type execActionF func(interface{}) ([]interface{}, error)
+type execActionF func(interface{}, *TracingSpan) ([]interface{}, error)
 
-func execute(kind string, path []string, action execActionF) ([]interface{}, error) {
+func execute(ctx context.Context, kind string, path []string, action execActionF) ([]interface{}, error) {
 
-	context := new(execContext)
+	info := new(execInfo)
 	for {
-		res, err := _tryExecute(kind, path, action)
+		res, err := _tryExecute(ctx, kind, path, action)
 		if err == nil {
 			return res, nil
 		}
 
-		context.tryCount++
+		info.tryCount++
 		log.Printf("There was error: %s\n", err)
-		canRetry := _prepareRetry(context)
+		canRetry := _prepareRetry(info)
 		if !canRetry {
 			return nil, err
 		}
 	}
 }
 
-func _tryExecute(kind string, path []string, action execActionF) ([]interface{}, error) {
+func _tryExecute(ctx context.Context, kind string, path []string, action execActionF) ([]interface{}, error) {
 	log.Println("Trying...")
 	log.Printf("EnableZipkin = %s\n", resolvePolicy("enable-zipkin", nil))
 	log.Printf("ZipkinURL = %s\n", resolvePolicy("zipkin-endpoint", nil))
@@ -43,16 +46,40 @@ func _tryExecute(kind string, path []string, action execActionF) ([]interface{},
 		return nil, fmt.Errorf("No peer available")
 	}
 
-	res, err := action(peer)
+	naming := []string{}
+
+	if _, ok := peer.(EndpointModel); ok {
+		switch kind {
+		case "service":
+			naming = append(naming, os.Getenv("BERLIOZ_CLUSTER"))
+			naming = append(naming, path[0])
+		case "cluster":
+			naming = append(naming, path[0])
+			naming = append(naming, path[1])
+		}
+	} else if cloudPeer, ok := peer.(CloudResourceModel); ok {
+		naming = append(naming, os.Getenv("BERLIOZ_CLUSTER"))
+		naming = append(naming, cloudPeer.SubClass)
+		naming = append(naming, path[0])
+	} else {
+		naming = append(naming, kind)
+		naming = append(naming, path...)
+	}
+
+	remoteServiceName := strings.Join(naming, "-")
+
+	span := myZipkin.instrument(ctx, remoteServiceName)
+	defer span.Finish()
+	res, err := action(peer, &span)
 	return res, err
 }
 
-func _prepareRetry(context *execContext) bool {
-	if context.tryCount > resolvePolicyInt("retry-count", nil) {
+func _prepareRetry(info *execInfo) bool {
+	if info.tryCount > resolvePolicyInt("retry-count", nil) {
 		return false
 	}
 	timeout := resolvePolicyInt("retry-initial-delay", nil)
-	timeout = timeout * int(math.Pow(resolvePolicyFloat("retry-delay-multiplier", nil), float64(context.tryCount-1)))
+	timeout = timeout * int(math.Pow(resolvePolicyFloat("retry-delay-multiplier", nil), float64(info.tryCount-1)))
 	maxDelay := resolvePolicyInt("retry-max-delay", nil)
 	if timeout > maxDelay {
 		timeout = maxDelay

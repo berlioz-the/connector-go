@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"fmt"
 	"os"
@@ -29,7 +28,8 @@ type zipkinInfo struct {
 
 // TBD
 type TracingSpan struct {
-	span *opentracing.Span
+	span   *opentracing.Span
+	tracer *opentracing.Tracer
 }
 
 var myZipkin *zipkinInfo
@@ -116,18 +116,31 @@ func (x *zipkinInfo) getTracer(name string) *opentracing.Tracer {
 	return &tracer
 }
 
-func (x *zipkinInfo) instrument(name string) TracingSpan {
-	log.Printf("[ZipkinInfo::instrument] \n")
+func (x *zipkinInfo) instrument(context context.Context, name string) TracingSpan {
+	log.Printf("[ZipkinInfo::instrument] %s\n", name)
 
 	tracer := x.getTracer(name)
 	if tracer == nil {
 		return TracingSpan{}
 	}
-	span := (*tracer).StartSpan("MyOp1")
-	log.Printf("[TestZipkin] span started \n")
-	opentracing.ContextWithSpan(context.Background(), span)
 
-	return TracingSpan{span: &span}
+	options := make([]opentracing.StartSpanOption, 0)
+
+	var parentCtx opentracing.SpanContext
+	parentSpan := opentracing.SpanFromContext(context)
+	if parentSpan != nil {
+		log.Printf("[ZipkinInfo::instrument] %s. Parent span present.\n", name)
+
+		parentCtx = parentSpan.Context()
+		options = append(options, opentracing.ChildOf(parentCtx))
+	}
+
+	span := (*tracer).StartSpan("MyOp1", options...)
+	log.Printf("[ZipkinInfo::instrument] %s. END\n", name)
+
+	// opentracing.ContextWithSpan(context, span)
+
+	return TracingSpan{span: &span, tracer: tracer}
 }
 
 // TBD
@@ -162,21 +175,4 @@ func (x *zipkinInfo) instrumentServerRequest(req *http.Request) (*http.Request, 
 	ctx := opentracing.ContextWithSpan(req.Context(), span)
 
 	return req.WithContext(ctx), TracingSpan{span: &span}
-}
-
-// TBD
-func TestZipkin() {
-
-	time.Sleep(500 * time.Millisecond)
-
-	span := myZipkin.instrument("kukuku")
-
-	time.Sleep(200 * time.Millisecond)
-
-	span.Finish()
-
-	log.Printf("[TestZipkin] end \n")
-
-	// tracer
-	time.Sleep(500 * time.Millisecond)
 }
