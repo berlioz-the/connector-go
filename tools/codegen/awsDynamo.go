@@ -4,12 +4,11 @@ import (
 	"reflect"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	. "github.com/dave/jennifer/jen"
 )
 
-func genDynamoDB(f *File) {
+func genDynamoDB(f *CodeWriter) {
 	rdynamo := reflect.TypeOf((*dynamodb.DynamoDB)(nil))
-	wrapAwsClient(f, rdynamo)
+	wrapAwsClient(f, rdynamo, "DynamoDBAccessor")
 }
 
 func checkDynamoDbMethod(rm reflect.Method) bool {
@@ -32,6 +31,6 @@ func checkDynamoDbMethod(rm reflect.Method) bool {
 	return true
 }
 
-func setupDynamoDbPeer(f *File, rm reflect.Method, inputVarName string) Code {
-	return Id(inputVarName).Id(".TableName").Op("=").Id("&peer.Name")
+func setupDynamoDbPeer(f *CodeWriter, rm reflect.Method, inputVarName string) {
+	f.WriteLine("%s.TableName = &peer.Name", inputVarName)
 }

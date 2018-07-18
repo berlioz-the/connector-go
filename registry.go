@@ -28,6 +28,8 @@ var registrySectionNames = [...]string{
 	"cluster",
 	"database",
 	"queue",
+	"secret_public_key",
+	"secret_private_key",
 }
 
 func newRegistry() *registryT {
@@ -73,9 +75,12 @@ func (x registryT) subscribe(name string, path []string, callback registryChange
 }
 
 func (x registryT) get(name string, path []string) interface{} {
+	// log.Printf("[REGISTRY] GET. Section: %s, Path: %v \n", name, path)
+
 	if section, err := x._getSection(name); err == nil {
 		fullname := _makeFullName(path)
 		if val, ok := section.items[fullname]; ok {
+			// log.Printf("[REGISTRY] GET. Res: %v \n", val)
 			return val
 		}
 	}
@@ -91,6 +96,7 @@ func (x registryT) getAsIndexedMap(name string, path []string) indexedMap {
 }
 
 func (x registryT) setAsIndexedMap(name string, path []string, value interface{}) {
+	// log.Printf("[REGISTRY] setAsIndexedMap. Section: %s, Path: %v, Value: %v \n", name, path, value)
 	x.set(name, path, newIndexedMap(value))
 }
 
@@ -98,6 +104,7 @@ func (x registryT) _getSection(name string) (*sectionT, error) {
 	if val, ok := x.sections[name]; ok {
 		return &val, nil
 	}
+	log.Printf("[REGISTRY] Unknown section: %s.", name)
 	return nil, fmt.Errorf("Unknown section: %s", name)
 }
 

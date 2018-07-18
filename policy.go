@@ -5,7 +5,7 @@ import (
 )
 
 var policyDefaults = map[string]interface{}{
-	"enable-zipkin":          true,
+	"enable-zipkin":          false,
 	"zipkin-endpoint":        "",
 	"timeout":                5000,
 	"no-peer-retry":          true,

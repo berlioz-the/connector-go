@@ -36,10 +36,12 @@ type CloudResourceModel struct {
 type CloudResourcesModel map[string]CloudResourceModel
 
 type messagePeersModel struct {
-	Service  map[string]map[string]PeersModel `json:"service,omitempty"`
-	Cluster  map[string]map[string]PeersModel `json:"cluster,omitempty"`
-	Database map[string]CloudResourcesModel   `json:"database,omitempty"`
-	Queue    map[string]CloudResourcesModel   `json:"queue,omitempty"`
+	Service          map[string]map[string]PeersModel `json:"service,omitempty"`
+	Cluster          map[string]map[string]PeersModel `json:"cluster,omitempty"`
+	Database         map[string]CloudResourcesModel   `json:"database,omitempty"`
+	Queue            map[string]CloudResourcesModel   `json:"queue,omitempty"`
+	SecretPublicKey  map[string]CloudResourcesModel   `json:"secret_public_key,omitempty"`
+	SecretPrivateKey map[string]CloudResourcesModel   `json:"secret_private_key,omitempty"`
 }
 
 type agentMessageModel struct {

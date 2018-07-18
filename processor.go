@@ -43,6 +43,21 @@ func processMessage(data []byte) error {
 				registry.setAsIndexedMap("queue", path, value)
 			}
 		}
+		if message.Peers.SecretPublicKey != nil {
+			for name, value := range message.Peers.SecretPublicKey {
+				path := make([]string, 1)
+				path[0] = name
+				registry.setAsIndexedMap("secret_public_key", path, value)
+			}
+		}
+		if message.Peers.SecretPrivateKey != nil {
+			for name, value := range message.Peers.SecretPrivateKey {
+				path := make([]string, 1)
+				path[0] = name
+				registry.setAsIndexedMap("secret_private_key", path, value)
+			}
+		}
+
 	}
 
 	if message.Policies != nil {

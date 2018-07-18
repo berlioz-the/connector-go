@@ -3,8 +3,6 @@ package main
 import (
 	"reflect"
 	"strings"
-
-	. "github.com/dave/jennifer/jen"
 )
 
 type MyTypeInfo struct {
@@ -37,22 +35,4 @@ func parseType(t reflect.Type) MyTypeInfo {
 		return MyTypeInfo{packageName: "", name: arr[0], isPtr: isPtr}
 	}
 	return MyTypeInfo{packageName: arr[0], name: arr[1], isPtr: isPtr}
-}
-
-func resolveGeneratorType(t reflect.Type) Code {
-	if t.Kind() == reflect.Ptr || t.Kind() == reflect.Struct {
-		tInfo := parseType(t)
-
-		if len(tInfo.packageName) > 0 {
-			if packagePath, ok := awsPackageNames[tInfo.packageName]; ok {
-				code := Qual(packagePath, tInfo.name)
-				if tInfo.isPtr {
-					return Id("*").Add(code)
-				}
-				return code
-			}
-		}
-	}
-
-	return Id(t.String())
 }

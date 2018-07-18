@@ -18,6 +18,7 @@ type execInfo struct {
 type execActionF func(interface{}, *TracingSpan) ([]interface{}, error)
 
 func execute(ctx context.Context, kind string, path []string, action execActionF) ([]interface{}, error) {
+	log.Printf("[EXECUTE]: kind: %s, path: %v\n", kind, path)
 
 	info := new(execInfo)
 	for {
@@ -37,12 +38,13 @@ func execute(ctx context.Context, kind string, path []string, action execActionF
 
 func _tryExecute(ctx context.Context, kind string, path []string, action execActionF) ([]interface{}, error) {
 	log.Println("Trying...")
-	log.Printf("EnableZipkin = %s\n", resolvePolicy("enable-zipkin", nil))
-	log.Printf("ZipkinURL = %s\n", resolvePolicy("zipkin-endpoint", nil))
+	// log.Printf("EnableZipkin = %s\n", resolvePolicy("enable-zipkin", nil))
+	// log.Printf("ZipkinURL = %s\n", resolvePolicy("zipkin-endpoint", nil))
 
 	peersMap := registry.getAsIndexedMap(kind, path)
 	peer := peersMap.random()
 	if peer == nil {
+		// log.Printf("REGISTRY: %#v\n", registry)
 		return nil, fmt.Errorf("No peer available")
 	}
 
@@ -84,6 +86,7 @@ func _prepareRetry(info *execInfo) bool {
 	if timeout > maxDelay {
 		timeout = maxDelay
 	}
+	timeout = 500
 	if timeout > 0 {
 		log.Printf("Sleeping %dms before retry...\n", timeout)
 		time.Sleep(time.Duration(timeout) * time.Millisecond)
