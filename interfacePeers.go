@@ -170,7 +170,7 @@ func (x PeerRequester) Do(ctx context.Context, req *http.Request) (*http.Respons
 		return []interface{}{resp, body}, nil
 	}
 
-	res, err := execute(ctx, x.kind, x.path, f)
+	res, err := execute(ctx, x.kind, x.path, req.Method, f)
 	if err != nil {
 		return nil, nil, err
 	}

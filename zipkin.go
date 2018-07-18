@@ -116,7 +116,7 @@ func (x *zipkinInfo) getTracer(name string) *opentracing.Tracer {
 	return &tracer
 }
 
-func (x *zipkinInfo) instrument(context context.Context, name string) TracingSpan {
+func (x *zipkinInfo) instrument(context context.Context, name string, operation string) TracingSpan {
 	log.Printf("[ZipkinInfo::instrument] %s\n", name)
 
 	tracer := x.getTracer(name)
@@ -135,7 +135,7 @@ func (x *zipkinInfo) instrument(context context.Context, name string) TracingSpa
 		options = append(options, opentracing.ChildOf(parentCtx))
 	}
 
-	span := (*tracer).StartSpan("MyOp1", options...)
+	span := (*tracer).StartSpan(operation, options...)
 	log.Printf("[ZipkinInfo::instrument] %s. END\n", name)
 
 	// opentracing.ContextWithSpan(context, span)

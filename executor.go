@@ -17,12 +17,12 @@ type execInfo struct {
 
 type execActionF func(interface{}, *TracingSpan) ([]interface{}, error)
 
-func execute(ctx context.Context, kind string, path []string, action execActionF) ([]interface{}, error) {
+func execute(ctx context.Context, kind string, path []string, operationName string, action execActionF) ([]interface{}, error) {
 	log.Printf("[EXECUTE]: kind: %s, path: %v\n", kind, path)
 
 	info := new(execInfo)
 	for {
-		res, err := _tryExecute(ctx, kind, path, action)
+		res, err := _tryExecute(ctx, kind, path, operationName, action)
 		if err == nil {
 			return res, nil
 		}
@@ -36,7 +36,7 @@ func execute(ctx context.Context, kind string, path []string, action execActionF
 	}
 }
 
-func _tryExecute(ctx context.Context, kind string, path []string, action execActionF) ([]interface{}, error) {
+func _tryExecute(ctx context.Context, kind string, path []string, operationName string, action execActionF) ([]interface{}, error) {
 	log.Println("Trying...")
 	// log.Printf("EnableZipkin = %s\n", resolvePolicy("enable-zipkin", nil))
 	// log.Printf("ZipkinURL = %s\n", resolvePolicy("zipkin-endpoint", nil))
@@ -70,7 +70,7 @@ func _tryExecute(ctx context.Context, kind string, path []string, action execAct
 
 	remoteServiceName := strings.Join(naming, "-")
 
-	span := myZipkin.instrument(ctx, remoteServiceName)
+	span := myZipkin.instrument(ctx, remoteServiceName, operationName)
 	defer span.Finish()
 	res, err := action(peer, &span)
 	return res, err
