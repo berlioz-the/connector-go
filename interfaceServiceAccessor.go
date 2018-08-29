@@ -5,7 +5,7 @@ package berlioz
  */
 type ServiceAccessor struct {
 	id    string
-	peers NewPeerAccessor
+	peers PeerAccessor
 }
 
 // TBD
@@ -34,7 +34,7 @@ func (x ServiceAccessor) Random() interface{} {
 }
 
 // TBD
-func (x ServiceAccessor) MonitorAll(callback func(indexedMap)) {
+func (x ServiceAccessor) MonitorAll(callback func(map[string]interface{})) {
 	x.peers.MonitorAll(callback)
 }
 

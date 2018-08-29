@@ -3,7 +3,7 @@ package berlioz
 // TBD
 type NativeResourceAccessor struct {
 	id    string
-	peers NewPeerAccessor
+	peers PeerAccessor
 }
 
 // TBD
@@ -27,7 +27,7 @@ func (x NativeResourceAccessor) Random() interface{} {
 }
 
 // TBD
-func (x NativeResourceAccessor) MonitorAll(callback func(indexedMap)) {
+func (x NativeResourceAccessor) MonitorAll(callback func(map[string]interface{})) {
 	x.peers.MonitorAll(callback)
 }
 

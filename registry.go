@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	// "github.com/orcaman/concurrent-map"
 )
 
@@ -15,6 +16,7 @@ type sectionT struct {
 type sectionsT map[string]sectionT
 
 type registryT struct {
+	lock     sync.Mutex
 	sections sectionsT
 }
 
@@ -51,6 +53,9 @@ func newRegistry() *registryT {
 }
 
 func (x registryT) set(name string, path []string, value interface{}) {
+	x.lock.Lock()
+	defer x.lock.Unlock()
+
 	log.Printf("[REGISTRY] SET. Section: %s, Path: %v \n", name, path)
 	// log.Printf("[REGISTRY] SET. Section: %s, Path: %v, Value: %v \n", name, path, value)
 
@@ -62,6 +67,9 @@ func (x registryT) set(name string, path []string, value interface{}) {
 }
 
 func (x registryT) subscribe(name string, path []string, callback registryChangeHandler) {
+	x.lock.Lock()
+	defer x.lock.Unlock()
+
 	log.Printf("[REGISTRY] Subscribe. Section: %s, Path: %v \n", name, path)
 
 	if section, err := x._getSection(name); err == nil {
@@ -76,6 +84,9 @@ func (x registryT) subscribe(name string, path []string, callback registryChange
 }
 
 func (x registryT) get(name string, path []string) interface{} {
+	x.lock.Lock()
+	defer x.lock.Unlock()
+
 	// log.Printf("[REGISTRY] GET. Section: %s, Path: %v \n", name, path)
 
 	if section, err := x._getSection(name); err == nil {
@@ -88,12 +99,12 @@ func (x registryT) get(name string, path []string) interface{} {
 	return nil
 }
 
-func (x registryT) getAsIndexedMap(name string, path []string) indexedMap {
+func (x registryT) getAsIndexedMap(name string, path []string) IndexedMap {
 	value := x.get(name, path)
 	if value == nil {
-		return indexedMap{}
+		return IndexedMap{}
 	}
-	return value.(indexedMap)
+	return value.(IndexedMap)
 }
 
 func (x registryT) setAsIndexedMap(name string, path []string, value interface{}) {

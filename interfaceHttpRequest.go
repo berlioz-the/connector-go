@@ -17,7 +17,7 @@ import (
 
 // TBD
 type PeerHttpRequester struct {
-	peers NewPeerAccessor
+	peers PeerAccessor
 }
 
 // TBD

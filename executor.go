@@ -15,7 +15,7 @@ type execInfo struct {
 
 type execActionF func(interface{}, *TracingSpan) ([]interface{}, error)
 
-func execute(ctx context.Context, peers NewPeerAccessor, operationName string, action execActionF) ([]interface{}, error) {
+func execute(ctx context.Context, peers PeerAccessor, operationName string, action execActionF) ([]interface{}, error) {
 	// log.Printf("[EXECUTE]: kind: %s, path: %v\n", kind, path)
 
 	info := new(execInfo)
@@ -34,7 +34,7 @@ func execute(ctx context.Context, peers NewPeerAccessor, operationName string, a
 	}
 }
 
-func _tryExecute(ctx context.Context, peers NewPeerAccessor, operationName string, action execActionF) ([]interface{}, error) {
+func _tryExecute(ctx context.Context, peers PeerAccessor, operationName string, action execActionF) ([]interface{}, error) {
 	log.Printf("Trying %s...\n", peers.serviceID)
 	// log.Printf("EnableZipkin = %s\n", resolvePolicy("enable-zipkin", nil))
 	// log.Printf("ZipkinURL = %s\n", resolvePolicy("zipkin-endpoint", nil))

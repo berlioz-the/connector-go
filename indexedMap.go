@@ -10,13 +10,13 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-type indexedMap struct {
+type IndexedMap struct {
 	keys   []string
 	values map[string]interface{}
 }
 
-func newIndexedMap(obj interface{}) indexedMap {
-	result := indexedMap{
+func newIndexedMap(obj interface{}) IndexedMap {
+	result := IndexedMap{
 		keys:   make([]string, 0),
 		values: make(map[string]interface{}),
 	}
@@ -31,18 +31,18 @@ func newIndexedMap(obj interface{}) indexedMap {
 	return result
 }
 
-func (x indexedMap) all() map[string]interface{} {
+func (x IndexedMap) all() map[string]interface{} {
 	return x.values
 }
 
-func (x indexedMap) get(key string) interface{} {
+func (x IndexedMap) get(key string) interface{} {
 	if value, ok := x.values[key]; ok {
 		return value
 	}
 	return nil
 }
 
-func (x indexedMap) random() interface{} {
+func (x IndexedMap) random() interface{} {
 	if len(x.keys) > 0 {
 		key := x.keys[rand.Intn(len(x.keys))]
 		return x.values[key]
@@ -50,7 +50,7 @@ func (x indexedMap) random() interface{} {
 	return nil
 }
 
-func (x indexedMap) first() interface{} {
+func (x IndexedMap) first() interface{} {
 	if len(x.keys) > 0 {
 		key := x.keys[0]
 		return x.values[key]
@@ -58,6 +58,6 @@ func (x indexedMap) first() interface{} {
 	return nil
 }
 
-func firstKeySelector(x indexedMap) interface{} {
+func firstKeySelector(x IndexedMap) interface{} {
 	return x.first()
 }
