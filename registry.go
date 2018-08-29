@@ -24,6 +24,7 @@ var registry = *newRegistry()
 var registrySectionNames = [...]string{
 	"endpoints",
 	"policies",
+	"peer",
 	"service",
 	"cluster",
 	"database",

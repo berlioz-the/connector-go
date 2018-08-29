@@ -2,21 +2,100 @@ package berlioz
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
-
-	opentracing "github.com/opentracing/opentracing-go"
 )
 
+/*
+ * GLOBAL ACCESSORS
+ */
+
+/*
+ * Interface Peer Accessor
+ */
+type IPeerAccessor interface {
+	All() PeersModel
+}
+
+/*
+ * NEW Peer Accessor
+ */
+type NewPeerAccessor struct {
+	serviceID string
+	path      []string
+}
+
+// TBD
+func NewEndpointPeers(id string, endpoint string) NewPeerAccessor {
+	path := make([]string, 2)
+	path[0] = id
+	path[1] = endpoint
+	return NewPeerAccessor{serviceID: id, path: path}
+}
+
+// TBD
+func NewResourcePeers(name string) NewPeerAccessor {
+	path := make([]string, 1)
+	path[0] = name
+	return NewPeerAccessor{path: path}
+}
+
+func (x NewPeerAccessor) getMap() indexedMap {
+	return registry.getAsIndexedMap("peer", x.path)
+}
+
+// TBD
+func (x NewPeerAccessor) All() map[string]interface{} {
+	y := x.getMap()
+	return y.all()
+}
+
+// TBD
+func (x NewPeerAccessor) Get(identity string) interface{} {
+	y := x.getMap()
+	return y.get(identity)
+}
+
+// TBD
+func (x NewPeerAccessor) First() interface{} {
+	y := x.getMap()
+	return y.first()
+}
+
+// TBD
+func (x NewPeerAccessor) Random() interface{} {
+	y := x.getMap()
+	return y.random()
+}
+
+// TBD
+func (x NewPeerAccessor) MonitorAll(callback func(indexedMap)) {
+	registry.subscribe("peer", x.path, func(value interface{}) {
+		callback(value.(indexedMap))
+	})
+}
+
+// TBD
+func (x NewPeerAccessor) MonitorFirst(callback func(interface{})) {
+	x.monitorPeer(firstKeySelector, callback)
+}
+
+type peerSelectorT func(indexedMap) interface{}
+
+// TBD
+func (x NewPeerAccessor) monitorPeer(selector peerSelectorT, callback func(interface{})) {
+	// oldValue := interface{}(nil)
+	registry.subscribe("peer", x.path, func(peers interface{}) {
+		value := selector(peers.(indexedMap))
+		callback(value)
+	})
+}
+
+/************************* LEGACY ********************/
 // TBD
 type PeerAccessor struct {
-	kind string
 	path []string
 }
 
@@ -25,16 +104,16 @@ func Peers(kind string, name string, endpoint string) PeerAccessor {
 	path := make([]string, 2)
 	path[0] = name
 	path[1] = endpoint
-	return PeerAccessor{kind: kind, path: path}
+	return PeerAccessor{path: path}
 }
 
 func (x PeerAccessor) getMap() indexedMap {
-	return registry.getAsIndexedMap(x.kind, x.path)
+	return registry.getAsIndexedMap("peer", x.path)
 }
 
 // TBD
 func (x PeerAccessor) Monitor(callback func(PeerAccessor)) {
-	registry.subscribe(x.kind, x.path, func(interface{}) {
+	registry.subscribe("peer", x.path, func(interface{}) {
 		callback(x)
 	})
 }
@@ -133,46 +212,5 @@ func (x PeerRequester) Head(ctx context.Context, url string) (*http.Response, []
 
 // TBD
 func (x PeerRequester) Do(ctx context.Context, req *http.Request) (*http.Response, []byte, error) {
-	f := func(rawPeer interface{}, span *TracingSpan) ([]interface{}, error) {
-		peer := rawPeer.(EndpointModel)
-
-		req.URL.Scheme = peer.Protocol
-		req.URL.Host = peer.Address + ":" + strconv.Itoa(int(peer.Port))
-
-		if span != nil {
-			tracer := (*span).tracer
-			innerSpan := (*span).span
-			if tracer != nil && innerSpan != nil {
-				if err := (*tracer).Inject(
-					(*innerSpan).Context(),
-					opentracing.TextMap,
-					opentracing.HTTPHeadersCarrier(req.Header),
-				); err != nil {
-					fmt.Printf("error encountered while trying to inject span: %+v\n", err)
-				}
-			}
-		}
-
-		log.Printf("Request: %s", req.URL.String())
-		resp, err := new(http.Client).Do(req)
-		if err != nil {
-			// fmt.Printf("Response: %s, error: %s\n", resp, err)
-			return nil, err
-		}
-
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			// fmt.Printf("Response: %s, error: %s\n", resp, err)
-			return nil, err
-		}
-
-		return []interface{}{resp, body}, nil
-	}
-
-	res, err := execute(ctx, x.kind, x.path, req.Method, f)
-	if err != nil {
-		return nil, nil, err
-	}
-	return res[0].(*http.Response), res[1].([]byte), nil
+	return nil, nil, nil
 }

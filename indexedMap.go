@@ -49,3 +49,15 @@ func (x indexedMap) random() interface{} {
 	}
 	return nil
 }
+
+func (x indexedMap) first() interface{} {
+	if len(x.keys) > 0 {
+		key := x.keys[0]
+		return x.values[key]
+	}
+	return nil
+}
+
+func firstKeySelector(x indexedMap) interface{} {
+	return x.first()
+}

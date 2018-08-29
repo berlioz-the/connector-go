@@ -1,6 +1,7 @@
 package berlioz
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -19,8 +20,11 @@ func (x NativeResourceAccessor) DynamoDB() DynamoDBAccessor {
 
 // TBD
 func (x DynamoDBAccessor) Client(rawPeer interface{}) (*dynamodb.DynamoDB, *CloudResourceModel, error) {
-	peer, ok := rawPeer.(CloudResourceModel)
-	if !ok {
+
+	byteData, _ := json.Marshal(rawPeer)
+	peer := CloudResourceModel{}
+	err := json.Unmarshal(byteData, &peer)
+	if err != nil {
 		log.Printf("[TEST] Could not convert peer.")
 		return nil, nil, fmt.Errorf("Invalid peer provided.")
 	}

@@ -25,7 +25,7 @@ func (x DynamoDBAccessor) CreateBackup(ctx context.Context, in1 *dynamodb.Create
         res[0], err = client.CreateBackup(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "CreateBackup", action)
+    execRes, execErr := execute(ctx, x.info.peers, "CreateBackup", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -47,7 +47,7 @@ func (x DynamoDBAccessor) CreateTable(ctx context.Context, in1 *dynamodb.CreateT
         res[0], err = client.CreateTable(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "CreateTable", action)
+    execRes, execErr := execute(ctx, x.info.peers, "CreateTable", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -69,7 +69,7 @@ func (x DynamoDBAccessor) DeleteItem(ctx context.Context, in1 *dynamodb.DeleteIt
         res[0], err = client.DeleteItem(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "DeleteItem", action)
+    execRes, execErr := execute(ctx, x.info.peers, "DeleteItem", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -91,7 +91,7 @@ func (x DynamoDBAccessor) DeleteTable(ctx context.Context, in1 *dynamodb.DeleteT
         res[0], err = client.DeleteTable(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "DeleteTable", action)
+    execRes, execErr := execute(ctx, x.info.peers, "DeleteTable", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -113,7 +113,7 @@ func (x DynamoDBAccessor) DescribeContinuousBackups(ctx context.Context, in1 *dy
         res[0], err = client.DescribeContinuousBackups(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "DescribeContinuousBackups", action)
+    execRes, execErr := execute(ctx, x.info.peers, "DescribeContinuousBackups", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -135,7 +135,7 @@ func (x DynamoDBAccessor) DescribeTable(ctx context.Context, in1 *dynamodb.Descr
         res[0], err = client.DescribeTable(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "DescribeTable", action)
+    execRes, execErr := execute(ctx, x.info.peers, "DescribeTable", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -157,7 +157,7 @@ func (x DynamoDBAccessor) DescribeTimeToLive(ctx context.Context, in1 *dynamodb.
         res[0], err = client.DescribeTimeToLive(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "DescribeTimeToLive", action)
+    execRes, execErr := execute(ctx, x.info.peers, "DescribeTimeToLive", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -179,7 +179,7 @@ func (x DynamoDBAccessor) GetItem(ctx context.Context, in1 *dynamodb.GetItemInpu
         res[0], err = client.GetItem(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "GetItem", action)
+    execRes, execErr := execute(ctx, x.info.peers, "GetItem", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -201,7 +201,7 @@ func (x DynamoDBAccessor) ListBackups(ctx context.Context, in1 *dynamodb.ListBac
         res[0], err = client.ListBackups(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "ListBackups", action)
+    execRes, execErr := execute(ctx, x.info.peers, "ListBackups", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -223,7 +223,7 @@ func (x DynamoDBAccessor) PutItem(ctx context.Context, in1 *dynamodb.PutItemInpu
         res[0], err = client.PutItem(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "PutItem", action)
+    execRes, execErr := execute(ctx, x.info.peers, "PutItem", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -245,7 +245,7 @@ func (x DynamoDBAccessor) Query(ctx context.Context, in1 *dynamodb.QueryInput) (
         res[0], err = client.Query(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "Query", action)
+    execRes, execErr := execute(ctx, x.info.peers, "Query", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -267,7 +267,7 @@ func (x DynamoDBAccessor) QueryPages(ctx context.Context, in1 *dynamodb.QueryInp
         err = client.QueryPages(in1, in2)
         return res, err
     }
-    _, execErr := execute(ctx, x.info.kind, x.info.path, "QueryPages", action)
+    _, execErr := execute(ctx, x.info.peers, "QueryPages", action)
     if execErr != nil {
         return execErr
     }
@@ -289,7 +289,7 @@ func (x DynamoDBAccessor) Scan(ctx context.Context, in1 *dynamodb.ScanInput) (*d
         res[0], err = client.Scan(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "Scan", action)
+    execRes, execErr := execute(ctx, x.info.peers, "Scan", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -311,7 +311,7 @@ func (x DynamoDBAccessor) ScanPages(ctx context.Context, in1 *dynamodb.ScanInput
         err = client.ScanPages(in1, in2)
         return res, err
     }
-    _, execErr := execute(ctx, x.info.kind, x.info.path, "ScanPages", action)
+    _, execErr := execute(ctx, x.info.peers, "ScanPages", action)
     if execErr != nil {
         return execErr
     }
@@ -333,7 +333,7 @@ func (x DynamoDBAccessor) UpdateContinuousBackups(ctx context.Context, in1 *dyna
         res[0], err = client.UpdateContinuousBackups(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "UpdateContinuousBackups", action)
+    execRes, execErr := execute(ctx, x.info.peers, "UpdateContinuousBackups", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -355,7 +355,7 @@ func (x DynamoDBAccessor) UpdateItem(ctx context.Context, in1 *dynamodb.UpdateIt
         res[0], err = client.UpdateItem(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "UpdateItem", action)
+    execRes, execErr := execute(ctx, x.info.peers, "UpdateItem", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -377,7 +377,7 @@ func (x DynamoDBAccessor) UpdateTable(ctx context.Context, in1 *dynamodb.UpdateT
         res[0], err = client.UpdateTable(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "UpdateTable", action)
+    execRes, execErr := execute(ctx, x.info.peers, "UpdateTable", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -399,7 +399,7 @@ func (x DynamoDBAccessor) UpdateTimeToLive(ctx context.Context, in1 *dynamodb.Up
         res[0], err = client.UpdateTimeToLive(in1)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "UpdateTimeToLive", action)
+    execRes, execErr := execute(ctx, x.info.peers, "UpdateTimeToLive", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -420,7 +420,7 @@ func (x DynamoDBAccessor) WaitUntilTableExists(ctx context.Context, in1 *dynamod
         err = client.WaitUntilTableExists(in1)
         return res, err
     }
-    _, execErr := execute(ctx, x.info.kind, x.info.path, "WaitUntilTableExists", action)
+    _, execErr := execute(ctx, x.info.peers, "WaitUntilTableExists", action)
     if execErr != nil {
         return execErr
     }
@@ -441,7 +441,7 @@ func (x DynamoDBAccessor) WaitUntilTableNotExists(ctx context.Context, in1 *dyna
         err = client.WaitUntilTableNotExists(in1)
         return res, err
     }
-    _, execErr := execute(ctx, x.info.kind, x.info.path, "WaitUntilTableNotExists", action)
+    _, execErr := execute(ctx, x.info.peers, "WaitUntilTableNotExists", action)
     if execErr != nil {
         return execErr
     }
@@ -463,7 +463,7 @@ func (x SSMAccessor) DeleteParameter(ctx context.Context, in0 *ssm.DeleteParamet
         res[0], err = client.DeleteParameter(in0)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "DeleteParameter", action)
+    execRes, execErr := execute(ctx, x.info.peers, "DeleteParameter", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -485,7 +485,7 @@ func (x SSMAccessor) GetParameter(ctx context.Context, in0 *ssm.GetParameterInpu
         res[0], err = client.GetParameter(in0)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "GetParameter", action)
+    execRes, execErr := execute(ctx, x.info.peers, "GetParameter", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -507,7 +507,7 @@ func (x SSMAccessor) GetParameterHistory(ctx context.Context, in0 *ssm.GetParame
         res[0], err = client.GetParameterHistory(in0)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "GetParameterHistory", action)
+    execRes, execErr := execute(ctx, x.info.peers, "GetParameterHistory", action)
     if execErr != nil {
         return nil, execErr
     }
@@ -529,7 +529,7 @@ func (x SSMAccessor) PutParameter(ctx context.Context, in0 *ssm.PutParameterInpu
         res[0], err = client.PutParameter(in0)
         return res, err
     }
-    execRes, execErr := execute(ctx, x.info.kind, x.info.path, "PutParameter", action)
+    execRes, execErr := execute(ctx, x.info.peers, "PutParameter", action)
     if execErr != nil {
         return nil, execErr
     }

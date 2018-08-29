@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"os"
-	"strings"
 	"time"
 )
 
@@ -17,12 +15,12 @@ type execInfo struct {
 
 type execActionF func(interface{}, *TracingSpan) ([]interface{}, error)
 
-func execute(ctx context.Context, kind string, path []string, operationName string, action execActionF) ([]interface{}, error) {
-	log.Printf("[EXECUTE]: kind: %s, path: %v\n", kind, path)
+func execute(ctx context.Context, peers NewPeerAccessor, operationName string, action execActionF) ([]interface{}, error) {
+	// log.Printf("[EXECUTE]: kind: %s, path: %v\n", kind, path)
 
 	info := new(execInfo)
 	for {
-		res, err := _tryExecute(ctx, kind, path, operationName, action)
+		res, err := _tryExecute(ctx, peers, operationName, action)
 		if err == nil {
 			return res, nil
 		}
@@ -36,39 +34,39 @@ func execute(ctx context.Context, kind string, path []string, operationName stri
 	}
 }
 
-func _tryExecute(ctx context.Context, kind string, path []string, operationName string, action execActionF) ([]interface{}, error) {
-	log.Println("Trying...")
+func _tryExecute(ctx context.Context, peers NewPeerAccessor, operationName string, action execActionF) ([]interface{}, error) {
+	log.Printf("Trying %s...\n", peers.serviceID)
 	// log.Printf("EnableZipkin = %s\n", resolvePolicy("enable-zipkin", nil))
 	// log.Printf("ZipkinURL = %s\n", resolvePolicy("zipkin-endpoint", nil))
 
-	peersMap := registry.getAsIndexedMap(kind, path)
-	peer := peersMap.random()
+	peer := peers.Random()
 	if peer == nil {
 		// log.Printf("REGISTRY: %#v\n", registry)
 		return nil, fmt.Errorf("No peer available")
 	}
 
-	naming := []string{}
+	// naming := []string{}
+	// if _, ok := peer.(EndpointModel); ok {
+	// 	switch kind {
+	// 	case "service":
+	// 		naming = append(naming, os.Getenv("BERLIOZ_CLUSTER"))
+	// 		naming = append(naming, path[0])
+	// 	case "cluster":
+	// 		naming = append(naming, path[0])
+	// 		naming = append(naming, path[1])
+	// 	}
+	// } else if cloudPeer, ok := peer.(CloudResourceModel); ok {
+	// 	naming = append(naming, os.Getenv("BERLIOZ_CLUSTER"))
+	// 	naming = append(naming, cloudPeer.SubClass)
+	// 	naming = append(naming, path[0])
+	// } else {
+	// 	naming = append(naming, kind)
+	// 	naming = append(naming, path...)
+	// }
 
-	if _, ok := peer.(EndpointModel); ok {
-		switch kind {
-		case "service":
-			naming = append(naming, os.Getenv("BERLIOZ_CLUSTER"))
-			naming = append(naming, path[0])
-		case "cluster":
-			naming = append(naming, path[0])
-			naming = append(naming, path[1])
-		}
-	} else if cloudPeer, ok := peer.(CloudResourceModel); ok {
-		naming = append(naming, os.Getenv("BERLIOZ_CLUSTER"))
-		naming = append(naming, cloudPeer.SubClass)
-		naming = append(naming, path[0])
-	} else {
-		naming = append(naming, kind)
-		naming = append(naming, path...)
-	}
-
-	remoteServiceName := strings.Join(naming, "-")
+	// remoteServiceName := strings.Join(naming, "-")
+	// TODO
+	remoteServiceName := "MYSERVICE"
 
 	span := myZipkin.instrument(ctx, remoteServiceName, operationName)
 	defer span.Finish()

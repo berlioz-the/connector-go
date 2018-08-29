@@ -10,8 +10,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"log"
-
-	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 // TBD
@@ -26,19 +24,21 @@ func Secret(name string) SecretAccessor {
 }
 
 func (x SecretAccessor) getKeyStr(ctx context.Context, kind string) (string, error) {
-	log.Printf("[InterfaceSecret::GetKey]: \n")
-	nr := getNativeResource(kind, x.name)
-	svc := nr.SSM()
-	mybool := true
-	params := ssm.GetParameterInput{WithDecryption: &mybool}
-	res, err := svc.GetParameter(ctx, &params)
-	if err != nil {
-		return "", err
-	}
-	if res.Parameter == nil {
-		return "", fmt.Errorf("Parameter not present")
-	}
-	return *res.Parameter.Value, nil
+	// TODO
+	// log.Printf("[InterfaceSecret::GetKey]: \n")
+	// nr := getNativeResource(kind, x.name)
+	// svc := nr.SSM()
+	// mybool := true
+	// params := ssm.GetParameterInput{WithDecryption: &mybool}
+	// res, err := svc.GetParameter(ctx, &params)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// if res.Parameter == nil {
+	// 	return "", fmt.Errorf("Parameter not present")
+	// }
+	// return *res.Parameter.Value, nil
+	return "", nil
 }
 
 func (x SecretAccessor) getPublicKey(ctx context.Context) (*rsa.PublicKey, error) {

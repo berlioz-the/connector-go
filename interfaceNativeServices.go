@@ -2,58 +2,36 @@ package berlioz
 
 // TBD
 type NativeResourceAccessor struct {
-	kind string
-	path []string
-}
-
-func getNativeResource(kind string, name string) NativeResourceAccessor {
-	path := make([]string, 1)
-	path[0] = name
-	return NativeResourceAccessor{kind: kind, path: path}
+	id    string
+	peers NewPeerAccessor
 }
 
 // TBD
-func Database(name string) NativeResourceAccessor {
-	return getNativeResource("database", name)
-}
-
-func (x NativeResourceAccessor) getMap() indexedMap {
-	return registry.getAsIndexedMap(x.kind, x.path)
+func (x NativeResourceAccessor) All() map[string]interface{} {
+	return x.peers.All()
 }
 
 // TBD
-func (x NativeResourceAccessor) Monitor(callback func(NativeResourceAccessor)) {
-	registry.subscribe(x.kind, x.path, func(interface{}) {
-		callback(x)
-	})
+func (x NativeResourceAccessor) Get(identity string) interface{} {
+	return x.peers.Get(identity)
 }
 
 // TBD
-func (x NativeResourceAccessor) All() CloudResourcesModel {
-	y := x.getMap()
-	result := CloudResourcesModel{}
-	for k, v := range y.all() {
-		result[k] = v.(CloudResourceModel)
-	}
-	return result
+func (x NativeResourceAccessor) First() interface{} {
+	return x.peers.First()
 }
 
 // TBD
-func (x NativeResourceAccessor) Get(identity string) (CloudResourceModel, bool) {
-	y := x.getMap()
-	val := y.get(identity)
-	if val == nil {
-		return CloudResourceModel{}, false
-	}
-	return val.(CloudResourceModel), true
+func (x NativeResourceAccessor) Random() interface{} {
+	return x.peers.Random()
 }
 
 // TBD
-func (x NativeResourceAccessor) Random() (CloudResourceModel, bool) {
-	y := x.getMap()
-	val := y.random()
-	if val == nil {
-		return CloudResourceModel{}, false
-	}
-	return val.(CloudResourceModel), true
+func (x NativeResourceAccessor) MonitorAll(callback func(indexedMap)) {
+	x.peers.MonitorAll(callback)
+}
+
+// TBD
+func (x NativeResourceAccessor) MonitorFirst(callback func(interface{})) {
+	x.peers.MonitorFirst(callback)
 }

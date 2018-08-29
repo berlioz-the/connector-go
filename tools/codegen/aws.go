@@ -149,7 +149,7 @@ func wrapAwsMethod(f *CodeWriter, name string, accessorTypeName string, t reflec
 	f.Unindent()
 	f.WriteLine("}")
 
-	f.WriteLine("%s, execErr := execute(ctx, x.info.kind, x.info.path, \"%s\", action)", resultVariableName, rm.Name)
+	f.WriteLine("%s, execErr := execute(ctx, x.info.peers, \"%s\", action)", resultVariableName, rm.Name)
 	f.WriteLine("if execErr != nil {").Indent()
 	f.WriteLine("return %s", strings.Join(outputReturnError, ", ")).Unindent()
 	f.WriteLine("}")
