@@ -27,11 +27,11 @@ func (x NativeResourceAccessor) Random() interface{} {
 }
 
 // TBD
-func (x NativeResourceAccessor) MonitorAll(callback func(map[string]interface{})) {
-	x.peers.MonitorAll(callback)
+func (x NativeResourceAccessor) MonitorAll(callback func(map[string]interface{})) SubscribeInfo {
+	return x.peers.MonitorAll(callback)
 }
 
 // TBD
-func (x NativeResourceAccessor) MonitorFirst(callback func(interface{})) {
-	x.peers.MonitorFirst(callback)
+func (x NativeResourceAccessor) MonitorFirst(callback func(interface{})) SubscribeInfo {
+	return x.peers.MonitorFirst(callback)
 }

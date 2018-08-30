@@ -34,13 +34,13 @@ func (x ServiceAccessor) Random() interface{} {
 }
 
 // TBD
-func (x ServiceAccessor) MonitorAll(callback func(map[string]interface{})) {
-	x.peers.MonitorAll(callback)
+func (x ServiceAccessor) MonitorAll(callback func(map[string]interface{})) SubscribeInfo {
+	return x.peers.MonitorAll(callback)
 }
 
 // TBD
-func (x ServiceAccessor) MonitorFirst(callback func(interface{})) {
-	x.peers.MonitorFirst(callback)
+func (x ServiceAccessor) MonitorFirst(callback func(interface{})) SubscribeInfo {
+	return x.peers.MonitorFirst(callback)
 }
 
 // TBD

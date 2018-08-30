@@ -3,14 +3,17 @@ package berlioz
 import (
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/google/uuid"
 	// "github.com/orcaman/concurrent-map"
 )
 
 type sectionT struct {
 	items       map[string]interface{}
-	subscribers map[string][]registryChangeHandler
+	subscribers map[string]map[string]registryChangeHandler
 }
 
 type sectionsT map[string]sectionT
@@ -20,6 +23,13 @@ type registryT struct {
 	sections sectionsT
 }
 
+type SubscribeInfo struct {
+	id       string
+	name     string
+	path     []string
+	registry *registryT
+}
+
 type registryChangeHandler func(interface{})
 
 var registry = *newRegistry()
@@ -27,6 +37,7 @@ var registrySectionNames = [...]string{
 	"endpoints",
 	"policies",
 	"peer",
+	"consumes",
 	"service",
 	"cluster",
 	"database",
@@ -41,7 +52,7 @@ func newRegistry() *registryT {
 	for _, name := range registrySectionNames {
 		x.sections[name] = sectionT{
 			items:       make(map[string]interface{}),
-			subscribers: make(map[string][]registryChangeHandler),
+			subscribers: make(map[string]map[string]registryChangeHandler),
 		}
 	}
 	keys := make([]string, 0, len(x.sections))
@@ -66,21 +77,62 @@ func (x registryT) set(name string, path []string, value interface{}) {
 	}
 }
 
-func (x registryT) subscribe(name string, path []string, callback registryChangeHandler) {
+func (x registryT) subscribe(name string, path []string, callback registryChangeHandler) SubscribeInfo {
 	x.lock.Lock()
 	defer x.lock.Unlock()
 
 	log.Printf("[REGISTRY] Subscribe. Section: %s, Path: %v \n", name, path)
 
+	subscribeID := uuid.New()
+	subscribeIDStr := subscribeID.String()
+
 	if section, err := x._getSection(name); err == nil {
 		fullname := _makeFullName(path)
-		section.subscribers[fullname] = append(section.subscribers[fullname], callback)
+		if _, ok := section.subscribers[fullname]; !ok {
+			section.subscribers[fullname] = make(map[string]registryChangeHandler)
+		}
+		section.subscribers[fullname][subscribeIDStr] = callback
 
 		val := section.items[fullname]
 		if val != nil {
 			callback(val)
 		}
+
+		return SubscribeInfo{id: subscribeIDStr, name: name, path: path, registry: &x}
 	}
+
+	return SubscribeInfo{}
+}
+
+func (x SubscribeInfo) Stop() {
+	if x.registry == nil {
+		return
+	}
+	x.registry.unsubscribe(x.name, x.path, x.id)
+}
+
+func (x registryT) unsubscribe(name string, path []string, subscribeID string) {
+	x.lock.Lock()
+	defer x.lock.Unlock()
+
+	log.Printf("[REGISTRY] Unubscribe. Section: %s, Path: %v \n", name, path)
+
+	if section, err := x._getSection(name); err == nil {
+		fullname := _makeFullName(path)
+		if _, ok := section.subscribers[fullname]; ok {
+			delete(section.subscribers[fullname], subscribeID)
+		}
+	}
+}
+
+func removeFromArray(vs []registryChangeHandler, value registryChangeHandler) []registryChangeHandler {
+	vsf := make([]registryChangeHandler, 0)
+	for _, v := range vs {
+		if reflect.ValueOf(v).Pointer() != reflect.ValueOf(value).Pointer() {
+			vsf = append(vsf, v)
+		}
+	}
+	return vsf
 }
 
 func (x registryT) get(name string, path []string) interface{} {

@@ -5,6 +5,11 @@ import (
 )
 
 // TBD
+func Consumes() ConsumesAccessor {
+	return ConsumesAccessor{}
+}
+
+// TBD
 func Sector(name string) SectorAccessor {
 	return SectorAccessor{name: name}
 }

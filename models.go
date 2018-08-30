@@ -9,6 +9,16 @@ type EndpointModel struct {
 	Address         string `json:"address,omitempty"`
 }
 
+// ConsumesModel is TBD.
+type ConsumesModel struct {
+	Kind     string `json:"kind,omitempty"`
+	ID       string `json:"id,omitempty"`
+	Cluster  string `json:"cluster,omitempty"`
+	Sector   string `json:"sector,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Endpoint string `json:"endpoint,omitempty"`
+}
+
 type PeersModel map[string]EndpointModel
 
 type EndpointsModel map[string]PeersModel
@@ -52,4 +62,5 @@ type agentMessageModel struct {
 	Endpoints *map[string]EndpointModel `json:"endpoints,omitempty"`
 	Policies  *policyModel              `json:"policies,omitempty"`
 	Peers     *map[string]interface{}   `json:"peers,omitempty"`
+	Consumes  *[]ConsumesModel          `json:"consumes,omitempty"`
 }

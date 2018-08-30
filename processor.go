@@ -36,6 +36,10 @@ func processMessage(data []byte) error {
 		}
 	}
 
+	if message.Consumes != nil {
+		registry.set("consumes", []string{}, *message.Consumes)
+	}
+
 	// if message.Peers.Service != nil {
 	// 	for name, endpointMap := range message.Peers.Service {
 	// 		for endpoint, value := range endpointMap {

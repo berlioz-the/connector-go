@@ -5,13 +5,6 @@ package berlioz
  */
 
 /*
- * Interface Peer Accessor
- */
-type IPeerAccessor interface {
-	All() PeersModel
-}
-
-/*
  * NEW Peer Accessor
  */
 type PeerAccessor struct {
@@ -63,23 +56,23 @@ func (x PeerAccessor) Random() interface{} {
 }
 
 // TBD
-func (x PeerAccessor) MonitorAll(callback func(map[string]interface{})) {
-	registry.subscribe("peer", x.path, func(value interface{}) {
+func (x PeerAccessor) MonitorAll(callback func(map[string]interface{})) SubscribeInfo {
+	return registry.subscribe("peer", x.path, func(value interface{}) {
 		callback(value.(IndexedMap).all())
 	})
 }
 
 // TBD
-func (x PeerAccessor) MonitorFirst(callback func(interface{})) {
-	x.monitorPeer(firstKeySelector, callback)
+func (x PeerAccessor) MonitorFirst(callback func(interface{})) SubscribeInfo {
+	return x.monitorPeer(firstKeySelector, callback)
 }
 
 type peerSelectorT func(IndexedMap) interface{}
 
 // TBD
-func (x PeerAccessor) monitorPeer(selector peerSelectorT, callback func(interface{})) {
+func (x PeerAccessor) monitorPeer(selector peerSelectorT, callback func(interface{})) SubscribeInfo {
 	// oldValue := interface{}(nil)
-	registry.subscribe("peer", x.path, func(peers interface{}) {
+	return registry.subscribe("peer", x.path, func(peers interface{}) {
 		value := selector(peers.(IndexedMap))
 		callback(value)
 	})
