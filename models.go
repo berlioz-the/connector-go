@@ -17,6 +17,7 @@ type ConsumesModel struct {
 	Sector   string `json:"sector,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Endpoint string `json:"endpoint,omitempty"`
+	Meta     *bool  `json:"meta,omitempty"`
 }
 
 type PeersModel map[string]EndpointModel
