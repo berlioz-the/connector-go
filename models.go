@@ -9,6 +9,14 @@ type EndpointModel struct {
 	Address         string `json:"address,omitempty"`
 }
 
+// IsPresent TBD
+func (x EndpointModel) IsPresent() bool {
+	if len(x.Name) > 0 {
+		return true
+	}
+	return false
+}
+
 // ConsumesModel is TBD.
 type ConsumesModel struct {
 	Kind     string `json:"kind,omitempty"`

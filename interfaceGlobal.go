@@ -5,6 +5,11 @@ import (
 )
 
 // TBD
+func MyEndpoint(name string) MyEndpointAccessor {
+	return MyEndpointAccessor{name: name}
+}
+
+// TBD
 func Consumes() ConsumesAccessor {
 	return ConsumesAccessor{}
 }

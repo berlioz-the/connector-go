@@ -16,7 +16,7 @@ func processMessage(data []byte) error {
 	}
 
 	if message.Endpoints != nil {
-
+		registry.set("endpoints", []string{}, message.Endpoints)
 	}
 
 	if message.Peers != nil {
