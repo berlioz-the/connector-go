@@ -1,6 +1,7 @@
 package berlioz
 
 import (
+	"log"
 	"math/rand"
 	"reflect"
 	"time"
@@ -21,6 +22,10 @@ func newIndexedMap(obj interface{}) IndexedMap {
 		values: make(map[string]interface{}),
 	}
 	robj := reflect.ValueOf(obj)
+	if robj.IsNil() {
+		log.Printf("[IndexedMap] Value is nil. Val: %#v\n", obj)
+		return result
+	}
 	rkeys := robj.MapKeys()
 	for _, rkey := range rkeys {
 		k := rkey.String()
