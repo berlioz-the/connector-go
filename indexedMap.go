@@ -21,11 +21,17 @@ func newIndexedMap(obj interface{}) IndexedMap {
 		keys:   make([]string, 0),
 		values: make(map[string]interface{}),
 	}
-	robj := reflect.ValueOf(obj)
-	if robj.IsNil() {
-		log.Printf("[IndexedMap] Value is nil. Val: %#v\n", obj)
+	if obj == nil {
+		log.Printf("[IndexedMap] Value == nil. Val: %#v\n", obj)
 		return result
 	}
+
+	robj := reflect.ValueOf(obj)
+	if robj.Kind() == reflect.Ptr && robj.IsNil() {
+		log.Printf("[IndexedMap] Reflect Value is nil. Val: %#v\n", obj)
+		return result
+	}
+
 	rkeys := robj.MapKeys()
 	for _, rkey := range rkeys {
 		k := rkey.String()
