@@ -21,18 +21,7 @@ func processMessage(data []byte) error {
 
 	if message.Peers != nil {
 		for serviceId, serviceMap := range *message.Peers {
-			if isEndpointService(serviceId) {
-				data := serviceMap.(map[string]interface{})
-				processServicePeer(serviceId, data)
-			} else {
-				processResourcePeer(serviceId, serviceMap)
-			}
-			// for endpoint, value := range endpointMap {
-			// 	path := make([]string, 2)
-			// 	path[0] = name
-			// 	path[1] = endpoint
-			// 	registry.setAsIndexedMap("service", path, value)
-			// }
+			processServicePeer(serviceId, serviceMap)
 		}
 	}
 
@@ -87,21 +76,8 @@ func processMessage(data []byte) error {
 	return nil
 }
 
-func isEndpointService(serviceId string) bool {
-	return strings.HasPrefix(serviceId, "service://") || strings.HasPrefix(serviceId, "cluster://")
-}
-
-func processServicePeer(serviceId string, serviceData map[string]interface{}) {
-	for endpoint, value := range serviceData {
-		path := make([]string, 2)
-		path[0] = serviceId
-		path[1] = endpoint
-		registry.setAsIndexedMap("peer", path, value)
-	}
-}
-
-func processResourcePeer(serviceId string, resourceData interface{}) {
+func processServicePeer(serviceId string, resourceData interface{}) {
 	path := make([]string, 1)
 	path[0] = serviceId
-	registry.setAsIndexedMap("peer", path, resourceData)
+	registry.setAsIndexedMap("peers", path, resourceData)
 }

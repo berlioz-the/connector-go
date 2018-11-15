@@ -14,9 +14,8 @@ type PeerAccessor struct {
 
 // TBD
 func NewEndpointPeers(id string, endpoint string) PeerAccessor {
-	path := make([]string, 2)
-	path[0] = id
-	path[1] = endpoint
+	path := make([]string, 1)
+	path[0] = id + "-" + endpoint
 	return PeerAccessor{serviceID: id, path: path}
 }
 
@@ -28,7 +27,7 @@ func NewResourcePeers(name string) PeerAccessor {
 }
 
 func (x PeerAccessor) getMap() IndexedMap {
-	return registry.getAsIndexedMap("peer", x.path)
+	return registry.getAsIndexedMap("peers", x.path)
 }
 
 // TBD
@@ -57,7 +56,7 @@ func (x PeerAccessor) Random() interface{} {
 
 // TBD
 func (x PeerAccessor) MonitorAll(callback func(map[string]interface{})) SubscribeInfo {
-	return registry.subscribe("peer", x.path, func(value interface{}) {
+	return registry.subscribe("peers", x.path, func(value interface{}) {
 		callback(value.(IndexedMap).all())
 	})
 }
@@ -72,7 +71,7 @@ type peerSelectorT func(IndexedMap) interface{}
 // TBD
 func (x PeerAccessor) monitorPeer(selector peerSelectorT, callback func(interface{})) SubscribeInfo {
 	// oldValue := interface{}(nil)
-	return registry.subscribe("peer", x.path, func(peers interface{}) {
+	return registry.subscribe("peers", x.path, func(peers interface{}) {
 		value := selector(peers.(IndexedMap))
 		callback(value)
 	})

@@ -40,13 +40,14 @@ func initZipkin() {
 
 func newZipkin() *zipkinInfo {
 	x := zipkinInfo{
-		localServiceName: os.Getenv("BERLIOZ_CLUSTER") + "-" + os.Getenv("BERLIOZ_SERVICE"),
+		localServiceName: os.Getenv("BERLIOZ_CLUSTER") + "-" + os.Getenv("BERLIOZ_SECTOR") + "-" + os.Getenv("BERLIOZ_SERVICE"),
 	}
 	monitorPolicyBool("enable-zipkin", nil, func(value bool) {
 		x.enabled = value
 		log.Printf("[ZipkinInfo::monitor] Enabled=%s\n", x.enabled)
 		x.activateChanges()
 	})
+	// TODO: use zipkin-service-id instead
 	monitorPolicyString("zipkin-endpoint", nil, func(value string) {
 		x.url = strings.Replace(value, "v2", "v1", -1)
 		log.Printf("[ZipkinInfo::monitor] URL=%s\n", x.url)
