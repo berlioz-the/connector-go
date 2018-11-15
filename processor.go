@@ -3,7 +3,6 @@ package berlioz
 import (
 	"encoding/json"
 	"log"
-	"strings"
 )
 
 func processMessage(data []byte) error {
