@@ -14,6 +14,12 @@ func Consumes() ConsumesAccessor {
 	return ConsumesAccessor{}
 }
 
+//TBD
+func Cluster(name string) ClusterAccessor {
+	id := "service://" + name
+	return ClusterAccessor{id: id, peers: NewEndpointPeers(id, "default")}
+}
+
 // TBD
 func Sector(name string) SectorAccessor {
 	return SectorAccessor{name: name}
