@@ -17,17 +17,17 @@ func initClient(handler messageHandler) {
 		for {
 			err := _clientTryProcess(wsURL, handler)
 			if err != nil {
-				log.Printf("[initClient] Error:", err)
+				log.Printf("[initClient] Error: %v\n", err)
 			}
 
-			time.Sleep(2 * time.Second)
+			time.Sleep(5 * time.Second)
 		}
 	}()
 }
 
 func _clientTryProcess(wsURL string, handler messageHandler) error {
 
-	// log.Printf("[_clientTryProcess] Start \n")
+	log.Printf("[_clientTryProcess] Start: %s\n", wsURL)
 
 	dialer := websocket.DefaultDialer
 	ws, _, err := dialer.Dial(wsURL, nil)
