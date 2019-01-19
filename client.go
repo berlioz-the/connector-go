@@ -9,8 +9,9 @@ import (
 
 type messageHandler func([]byte) error
 
-func initClient(wsURL string, handler messageHandler) {
-	log.Printf("[initClient] WS URL: %s\n", wsURL)
+func initClient(handler messageHandler) {
+	wsURL := GetEnvironmentVariable("BERLIOZ_AGENT_PATH")
+	log.Printf("[initClient] AGENT WS URL: %s\n", wsURL)
 
 	go func() {
 		for {

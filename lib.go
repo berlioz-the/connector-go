@@ -1,12 +1,10 @@
 package berlioz
 
-import (
-	"os"
-)
+import ()
 
 func init() {
+	initEnvironment()
 	initIdentity()
-	wsURL := os.Getenv("BERLIOZ_AGENT_PATH")
-	initClient(wsURL, processMessage)
+	initClient(processMessage)
 	initZipkin()
 }
