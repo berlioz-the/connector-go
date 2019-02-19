@@ -16,7 +16,7 @@ func Consumes() ConsumesAccessor {
 
 //TBD
 func Cluster(name string) ClusterAccessor {
-	id := "service://" + name
+	id := "cluster://" + name
 	return ClusterAccessor{id: id, peers: NewEndpointPeers(id, "default")}
 }
 
